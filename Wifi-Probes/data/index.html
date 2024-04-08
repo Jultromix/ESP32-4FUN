@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environmental Monitor</title>
+    <!-- GOOGLE FONTS -->
+    <!-- <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet"> -->
+    <!-- FONTS AWESOME -->
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+
+    <!-- ANIMATE CSS -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css"> -->
+
+</head>
+<body>
+    
+    <div class="all-content">
+            <h1 class="headlogo">Environmental <span>Monitor</span></h1>
+    
+            <table class="settings-tble">
+                <caption>
+                    Settings Table
+                </caption>
+                <tr>
+                    <!-- Board header in table -->
+                    <th>Board:</th>
+                    <th colspan="2">ESP32 Dev Module</th>
+                </tr>
+                <tr>
+                    <!-- Pin usage header table-->
+                    <th>Pin number</th>
+                    <th>Pin Description</th>
+                    <th>Pin Type</th>
+                </tr>
+                <tr>
+                    <!-- Cell content in table -->
+                    <td>GPIO 4</td>
+                    <td>Temperature reading bus</td>
+                    <td>input</td>
+                </tr>
+                <tr>
+                    <td>GPIO 5</td>
+                    <td>Humidity readings</td>
+                    <td>input</td>
+                </tr>
+                <tr>
+                    <td>GPIO 34</td>
+                    <td>CO2 readings sensor<sub>1/2</sub></td>
+                    <td>input</td>
+                </tr>
+                <tr>
+                    <td>GPIO 39</td>
+                    <td>CO2 readings sensor<sub>2/2</sub></td>
+                    <td>input</td>
+                </tr>
+            </table>
+            
+            <table class="sensor-tble">
+                <caption>
+                    Sensors' Readings
+                </caption>
+                <tr>
+                    <th class="temp-header" colspan="2">Temperature</th>
+                    <th class="hum-header" colspan="2">Humidity</th>
+                    <th class="gas-header" colspan="2">CO2</th>
+                </tr>
+                <tr>
+                    <th>Sensor ID</th>
+                    <th>Reading (<small>°C</small>)</th>
+                    <th>Sensor ID</th>
+                    <th>Reading (<small>%</small>)</th>
+                    <th>Sensor ID</th>
+                    <th>Reading (<small>ppm</small>)</th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td><span id="tempsensor1">%t1%</span></td>
+                    <td rowspan="2">1</td>
+                    <td rowspan="2"><span id="humsensor1">%h1%</span></td>
+                    <td rowspan="3">1</td>
+                    <td rowspan="3"><span id="gassensor1">%g1%</span></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><span id="tempsensor2">%t2%</span></td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><span id="tempsensor3">%t3%</span></td>
+                    <td rowspan="2">2</td>
+                    <td rowspan="2"><span id="humsensor2">h2</span></td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td><span id="tempsensor4">%t4%</span></td>
+                    <td rowspan="3">2</td>
+                    <td rowspan="3"><span id="gassensor2">%g2%</span></td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td><span id="tempsensor5">t5</span></td>
+                    <td rowspan="2">3</td>
+                    <td rowspan="2"><span id="humsensor3">h3</span></td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td><span id="tempsensor6">t6</span></td>
+                </tr>
+            </table>
+
+            <table class="overall-tble">
+                <caption>
+                    General Info
+                </caption>
+            </table>
+
+    </div>
+    <script src="main.js"></script>
+</body>
+</html> 
