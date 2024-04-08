@@ -3,6 +3,7 @@
 #include <AsyncTCP.h>
 #include "ESPAsyncWebServer.h"
 #include "WiFiMulti.h"
+#include <ESPmDNS.h>
 // #include "ArduinoJson.h"
 #include "Arduino_JSON.h"
 
@@ -151,15 +152,6 @@ void initSPIFFS() {
 
 // Initialize WiFi
 void initWiFi() {
-  // WiFi.mode(WIFI_STA);
-  // WiFi.begin(ssid, password);
-  // Serial.print("Connecting to WiFi ..");
-  // while (WiFi.status() != WL_CONNECTED) {
-  //   Serial.print('.');
-  //   delay(1000);
-  // }
-  // Serial.println(WiFi.localIP());
-
   // Replace with your network credentials
   wifiMulti.addAP("ssid1","password1");
   wifiMulti.addAP("ssid2","password2");
@@ -167,21 +159,31 @@ void initWiFi() {
   wifiMulti.addAP("ssid4","password4");
 
   WiFi.mode(WIFI_STA);
-  Serial.print("Conectando a Wifi ..");
+  Serial.print("Conecting ..");
   while (wifiMulti.run(TiempoEsperaWifi) != WL_CONNECTED) {
     Serial.print(".");
     delay(1000);
   }
-  Serial.println(".. Conectado");
+  Serial.println(".. Connected");
   Serial.print("SSID:");
   Serial.print(WiFi.SSID());
   Serial.print(" ID:");
   Serial.println(WiFi.localIP());
+
+  if (!MDNS.begin("FCastMonitor")) {
+    Serial.println("An error has occurred while configuring mDNS!");
+    while (1) {
+      delay(1000);
+    }
+  }
+  Serial.println("mDNS configured");
+
+  MDNS.addService("http", "tcp", 80);
 }
 
 void ActualizarWifi() {
   if (wifiMulti.run(TiempoEsperaWifi) != WL_CONNECTED) {
-    Serial.println("No conectado a Wifi!");
+    Serial.println("Not connected to Wifi!");
   }
 }
 
