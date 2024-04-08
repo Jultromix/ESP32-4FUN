@@ -2,7 +2,7 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include "ESPAsyncWebServer.h"
-#include <WiFiMulti.h>
+#include "WiFiMulti.h"
 // #include "ArduinoJson.h"
 #include "Arduino_JSON.h"
 
@@ -14,11 +14,6 @@
 #include <OneWire.h>
 
 #include "SPIFFS.h"
-
-
-// Replace with your network credentials
-const char* ssid = "WLAN_MOSAN";
-const char* password = "$Mosan1999";
 
 // Test physical variables
 #define ONE_WIRE_BUS 4                // Data wire is plugged into pin 4 on the esp32
@@ -49,6 +44,8 @@ JSONVar readings;
 // Timer variables
 unsigned long lastTime = 0;         
 unsigned long timerDelay = 10000;
+const uint32_t TiempoEsperaWifi = 5000;
+WiFiMulti wifiMulti;
 
 //Functions
 void printAddress(DeviceAddress deviceAddress) {
@@ -154,14 +151,38 @@ void initSPIFFS() {
 
 // Initialize WiFi
 void initWiFi() {
+  // WiFi.mode(WIFI_STA);
+  // WiFi.begin(ssid, password);
+  // Serial.print("Connecting to WiFi ..");
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   Serial.print('.');
+  //   delay(1000);
+  // }
+  // Serial.println(WiFi.localIP());
+
+  // Replace with your network credentials
+  wifiMulti.addAP("ssid1","password1");
+  wifiMulti.addAP("ssid2","password2");
+  wifiMulti.addAP("ssid3","password3");
+  wifiMulti.addAP("ssid4","password4");
+
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  Serial.print("Connecting to WiFi ..");
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print('.');
+  Serial.print("Conectando a Wifi ..");
+  while (wifiMulti.run(TiempoEsperaWifi) != WL_CONNECTED) {
+    Serial.print(".");
     delay(1000);
   }
+  Serial.println(".. Conectado");
+  Serial.print("SSID:");
+  Serial.print(WiFi.SSID());
+  Serial.print(" ID:");
   Serial.println(WiFi.localIP());
+}
+
+void ActualizarWifi() {
+  if (wifiMulti.run(TiempoEsperaWifi) != WL_CONNECTED) {
+    Serial.println("No conectado a Wifi!");
+  }
 }
 
 void setup(void){
@@ -258,6 +279,8 @@ void loop(void){
     events.send("ping",NULL,millis());
     events.send(getSensorReadings().c_str(),"new_readings" ,millis());
     lastTime = millis();
+  }else if((millis() - lastTime) > 1000){
+    ActualizarWifi();
   }
 
 }
