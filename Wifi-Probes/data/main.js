@@ -11,6 +11,8 @@ function getReadings(){
       console.log(myObj);
       
       document.getElementById("humsensor1").innerHTML =  myObj.humsensor1;
+      document.getElementById("humsensor2").innerHTML =  myObj.humsensor2;
+      document.getElementById("humsensor3").innerHTML =  myObj.humsensor3;
       document.getElementById("tempsensor1").innerHTML =  myObj.tempsensor1;
       document.getElementById("tempsensor2").innerHTML =  myObj.tempsensor2;
       document.getElementById("tempsensor3").innerHTML =  myObj.tempsensor3;
@@ -46,6 +48,8 @@ if (!!window.EventSource) {
     var myObj = JSON.parse(e.data);
     console.log(myObj);
     document.getElementById("humsensor1").innerHTML =  myObj.humsensor1;
+    document.getElementById("humsensor2").innerHTML =  myObj.humsensor2;
+    document.getElementById("humsensor3").innerHTML =  myObj.humsensor3;
     document.getElementById("tempsensor1").innerHTML =  myObj.tempsensor1;
     document.getElementById("tempsensor2").innerHTML =  myObj.tempsensor2;
     document.getElementById("tempsensor3").innerHTML =  myObj.tempsensor3;

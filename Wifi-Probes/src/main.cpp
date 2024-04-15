@@ -26,7 +26,9 @@ DeviceAddress tempDeviceAddress;      //found device storage vairbale
 int deviceQuantity;
 
 #define DHTTYPE DHT11
-DHT dht(5, DHTTYPE);
+DHT dht1(5, DHTTYPE);
+DHT dht2(2, DHTTYPE);
+DHT dht3(15, DHTTYPE);
 
 // #define RatioMQ135CleanAir 3.6//RS / R0 = 3.6 ppm  
 MQUnifiedsensor g1MQ135("ESP32", 5, 10, 34, "MQ-135");
@@ -123,12 +125,32 @@ String readHum(short sensor){
   float sample;
   switch (sensor){
     case 0:
-      sample = dht.readHumidity();
+      sample = dht1.readHumidity();
       lcd.clear();
       if(showhum){
         lcd.setCursor(0, 0);    // set cursor to first column, first row
         lcd.print("h1: ");      // print message
         lcd.setCursor(4, 0);
+        lcd.print(sample);
+      }
+      break;
+    case 1:
+      sample = dht2.readHumidity();
+      lcd.clear();
+      if(showhum){
+        lcd.setCursor(10, 0);   
+        lcd.print("h2: ");      
+        lcd.setCursor(14, 0);   
+        lcd.print(sample);
+      }
+      break;
+    case 2:
+      sample = dht3.readHumidity();
+      lcd.clear();
+      if(showhum){
+        lcd.setCursor(0, 1);    
+        lcd.print("h3: ");      
+        lcd.setCursor(4, 1);    
         lcd.print(sample);
       }
       break;
@@ -142,19 +164,19 @@ String readGas(short sensor){
     case 0:
       g1MQ135.update();
       sample = g1MQ135.readSensor(); 
-      if(showgas){
-        lcd.setCursor(10, 2);   
+      if(showgas){   
+        lcd.setCursor(0, 3);
         lcd.print("g1: ");      
-        lcd.setCursor(14, 2);   
+        lcd.setCursor(4, 3);   
         lcd.print(sample);}
       break;
     case 1:
       g2MQ135.update();
       sample = g2MQ135.readSensor();
       if(showgas){  
-        lcd.setCursor(0, 3);    
-        lcd.print("g2: ");      
-        lcd.setCursor(4, 3);   
+        lcd.setCursor(10, 3);      
+        lcd.print("g2: ");   
+        lcd.setCursor(14, 3);      
         lcd.print(sample);
       } 
       break;
@@ -165,12 +187,14 @@ String readGas(short sensor){
 // Get Sensor Readings and return JSON object
 String getSensorReadings(){
   readings["humsensor1"] = readHum(0);
+  readings["humsensor2"] = readHum(1);
+  readings["humsensor3"] = readHum(2);
   readings["tempsensor1"] = readTemp(0);
-  readings["tempsensor2"] =  readTemp(1);
+  readings["tempsensor2"] = readTemp(1);
   readings["tempsensor3"] = readTemp(2);
-  readings["tempsensor4"] =  readTemp(3);
+  readings["tempsensor4"] = readTemp(3);
   readings["gassensor1"] = readGas(0);
-  readings["gassensor2"] =  readGas(1);
+  readings["gassensor2"] = readGas(1);
   String jsonString = JSON.stringify(readings);
   return jsonString;
 }
@@ -228,7 +252,9 @@ void setup(void){
   lcd.backlight();
 
   //HUmidity settings
-  dht.begin();
+  dht1.begin();
+  dht2.begin();
+  dht3.begin();
 
   //Gas concentration settings
   g1MQ135.setRegressionMethod(1); //_PPM =  a*ratio^b
