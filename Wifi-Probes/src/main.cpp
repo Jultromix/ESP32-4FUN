@@ -15,6 +15,7 @@
 #include <MQUnifiedsensor.h>
 #include <DallasTemperature.h>
 #include <OneWire.h>
+#include <math.h>
 
 #include "SPIFFS.h"
 
@@ -27,7 +28,7 @@ int deviceQuantity;
 
 #define DHTTYPE DHT11
 DHT dht1(5, DHTTYPE);
-DHT dht2(2, DHTTYPE);
+DHT dht2(17, DHTTYPE);
 DHT dht3(15, DHTTYPE);
 
 // #define RatioMQ135CleanAir 3.6//RS / R0 = 3.6 ppm  
@@ -63,10 +64,13 @@ AsyncWebServer server(80);
 // Create an Event Source on /events
 AsyncEventSource events("/events");
 // Json Variable to Hold Sensor Readings
-JSONVar readings;                     
+JSONVar readings;
+                     
 // Timer variables
 unsigned long lastTime = 0;         
 unsigned long timerDelay = 10000;
+// unsigned long timerCycle = 0;
+
 const uint32_t TiempoEsperaWifi = 5000;
 WiFiMulti wifiMulti;
 
@@ -84,41 +88,23 @@ String readTemp(short sensor){
   switch (sensor){
     case 0:
       sample = sensors.getTempCByIndex(0);
-      if(showtemp){ 
-        lcd.setCursor(10, 0);   
-        lcd.print("t1: ");      
-        lcd.setCursor(14, 0);   
-        lcd.print(sample);
-      }
       break;
     case 1:  
       sample = sensors.getTempCByIndex(1);
-      if(showtemp){  
-        lcd.setCursor(0, 1);    
-        lcd.print("t2: ");      
-        lcd.setCursor(4, 1);    
-        lcd.print(sample);
-      }
       break;
     case 2:
       sample = sensors.getTempCByIndex(2);
-      if(showtemp){
-        lcd.setCursor(10, 1);   
-        lcd.print("t3: ");      
-        lcd.setCursor(14, 1);   
-        lcd.print(sample);
-      }
       break;
     case 3:
       sample = sensors.getTempCByIndex(3);
-      if(showtemp){  lcd.setCursor(0, 2);    
-        lcd.print("t4: ");      
-        lcd.setCursor(4, 2);    
-        lcd.print(sample);
-      } 
-      break;
+      break; 
   }
-  return String(sample);
+  if (sample == -127){
+    return "--.--";
+  }else{
+    return String(sample);  
+  }
+  
 }
 
 String readHum(short sensor){
@@ -126,36 +112,20 @@ String readHum(short sensor){
   switch (sensor){
     case 0:
       sample = dht1.readHumidity();
-      lcd.clear();
-      if(showhum){
-        lcd.setCursor(0, 0);    // set cursor to first column, first row
-        lcd.print("h1: ");      // print message
-        lcd.setCursor(4, 0);
-        lcd.print(sample);
-      }
       break;
     case 1:
       sample = dht2.readHumidity();
-      lcd.clear();
-      if(showhum){
-        lcd.setCursor(10, 0);   
-        lcd.print("h2: ");      
-        lcd.setCursor(14, 0);   
-        lcd.print(sample);
-      }
       break;
     case 2:
       sample = dht3.readHumidity();
-      lcd.clear();
-      if(showhum){
-        lcd.setCursor(0, 1);    
-        lcd.print("h3: ");      
-        lcd.setCursor(4, 1);    
-        lcd.print(sample);
-      }
       break;
   }
-  return String(sample);
+  if (isnan(sample)){
+    return "--.--";
+  }else{
+    return String(sample);
+  }
+  
 }
 
 String readGas(short sensor){
@@ -164,39 +134,118 @@ String readGas(short sensor){
     case 0:
       g1MQ135.update();
       sample = g1MQ135.readSensor(); 
-      if(showgas){   
-        lcd.setCursor(0, 3);
-        lcd.print("g1: ");      
-        lcd.setCursor(4, 3);   
-        lcd.print(sample);}
       break;
     case 1:
       g2MQ135.update();
       sample = g2MQ135.readSensor();
-      if(showgas){  
-        lcd.setCursor(10, 3);      
-        lcd.print("g2: ");   
-        lcd.setCursor(14, 3);      
-        lcd.print(sample);
-      } 
       break;
   }
-  return String(sample);
+  if (isnan(sample)){
+    return "--.--";
+  }else{
+    return String(sample);
+  }
 }
 
 // Get Sensor Readings and return JSON object
 String getSensorReadings(){
-  readings["humsensor1"] = readHum(0);
-  readings["humsensor2"] = readHum(1);
-  readings["humsensor3"] = readHum(2);
-  readings["tempsensor1"] = readTemp(0);
-  readings["tempsensor2"] = readTemp(1);
-  readings["tempsensor3"] = readTemp(2);
-  readings["tempsensor4"] = readTemp(3);
-  readings["gassensor1"] = readGas(0);
-  readings["gassensor2"] = readGas(1);
+  readings["humsensor1"] = readHum(0);  //key 0
+  readings["humsensor2"] = readHum(1);  //key 1
+  readings["humsensor3"] = readHum(2);  //key 2
+  readings["tempsensor1"] = readTemp(0);  //key 3
+  readings["tempsensor2"] = readTemp(1);  //key 4
+  readings["tempsensor3"] = readTemp(2);  //key 5
+  readings["tempsensor4"] = readTemp(3);  //key 6
+  readings["gassensor1"] = readGas(0);  //key 7
+  readings["gassensor2"] = readGas(1);  //key 8
   String jsonString = JSON.stringify(readings);
   return jsonString;
+}
+
+void displayReadingsInLCD(void){
+  bool scrollwait = true;
+  unsigned long retain = 0;
+
+  //String to display per row in LCD | (const char*) this points to the string 
+  const char* temp1 =  (const char*)readings["tempsensor1"];
+  const char* temp2 =  (const char*)readings["tempsensor2"];
+  const char* temp3 =  (const char*)readings["tempsensor3"];
+  const char* temp4 =  (const char*)readings["tempsensor4"];
+  const char* hum1 =  (const char*)readings["humsensor1"];
+  const char* hum2 =  (const char*)readings["humsensor2"];
+  const char* hum3 =  (const char*)readings["humsensor3"];
+  const char* gas1 =  (const char*)readings["gassensor1"];
+  const char* gas2 =  (const char*)readings["gassensor2"];
+  
+  if (showtemp == false){
+    temp1 = temp2 = temp3 = temp4 = "--.--";
+  }
+  if (showhum == false){
+    hum1 = hum2 = hum3 = "--.--";
+  }
+  if (showgas == false){
+    gas1 = gas2 = "--.--";
+  }
+
+  //Print Strings per row
+  for (int i = 0; i <= 4; i++){
+  
+    lcd.setCursor(0, 0); lcd.print("t1: "); lcd.setCursor(4, 0); lcd.print(temp1); lcd.setCursor(10, 0); lcd.print("t4: "); lcd.setCursor(14, 0); lcd.print(temp4);
+    lcd.setCursor(0, 1); lcd.print("t2: "); lcd.setCursor(4, 1); lcd.print(temp2); lcd.setCursor(10, 1); lcd.print("t5: "); lcd.setCursor(14, 1); lcd.print("--.--");
+    lcd.setCursor(0, 2); lcd.print("t3: "); lcd.setCursor(4, 2); lcd.print(temp3); lcd.setCursor(10, 2); lcd.print("t6: "); lcd.setCursor(14, 2); lcd.print("--.--");
+    lcd.setCursor(0, 3); lcd.print("g1: "); lcd.setCursor(4, 3); lcd.print(gas1); lcd.setCursor(10, 3); lcd.print("g2: "); lcd.setCursor(14, 3); lcd.print(gas2); 
+    retain = millis();
+    do{
+      char key = keypad.getKey();
+      if (key) {
+        if(key == '1'){
+          showtemp = !showtemp;
+        }else if (key == '2'){
+          showhum = !showhum;
+        }else if (key == '3'){
+          showgas = !showgas;
+        }else if (key == 'A'){
+          togglescreen = !togglescreen;
+          if(togglescreen){
+            lcd.noDisplay();
+            lcd.noBacklight();
+          }else{
+            lcd.display();
+            lcd.backlight();
+          }
+        }
+      }
+    }while((millis() - retain) < 2000);
+    
+    lcd.clear();
+    lcd.setCursor(0, 0); lcd.print("t4: "); lcd.setCursor(4, 0); lcd.print(temp4); lcd.setCursor(10, 0); lcd.print("h1: "); lcd.setCursor(14, 0); lcd.print(hum1);
+    lcd.setCursor(0, 1); lcd.print("t5: "); lcd.setCursor(4, 1); lcd.print("--.--"); lcd.setCursor(10, 1); lcd.print("h2: "); lcd.setCursor(14, 1); lcd.print(hum2);
+    lcd.setCursor(0, 2); lcd.print("t6: "); lcd.setCursor(4, 2); lcd.print("--.--"); lcd.setCursor(10, 2); lcd.print("h3: "); lcd.setCursor(14, 2); lcd.print(hum3);
+    lcd.setCursor(0, 3); lcd.print("g2: "); lcd.setCursor(4, 3); lcd.print(gas2);  lcd.setCursor(10, 3);
+    retain = millis();
+    do{
+      char key = keypad.getKey();
+      if (key) {
+        if(key == '1'){
+          showtemp = !showtemp;
+        }else if (key == '2'){
+          showhum = !showhum;
+        }else if (key == '3'){
+          showgas = !showgas;
+        }else if (key == 'A'){
+          togglescreen = !togglescreen;
+          if(togglescreen){
+            lcd.noDisplay();
+            lcd.noBacklight();
+          }else{
+            lcd.display();
+            lcd.backlight();
+          }
+        }
+      }
+    }while((millis() - retain) < 2000);
+  }
+
 }
 
 // Initialize SPIFFS
@@ -210,10 +259,10 @@ void initSPIFFS() {
 // Initialize WiFi
 void initWiFi() {
   // Replace with your network credentials
-  wifiMulti.addAP("ssid1","password1");
-  wifiMulti.addAP("ssid2","password2");
-  wifiMulti.addAP("ssid3","password3");
-  wifiMulti.addAP("ssid4","password4");
+  wifiMulti.addAP("wualn2","Control+Edificio+7");
+  wifiMulti.addAP("Galaxy A33 5GB9A6","tbnb8296");
+  wifiMulti.addAP("WLAN_MOSAN","$Mosan1999");
+  wifiMulti.addAP("IZZI-8830","ttD7uDeX");
 
   WiFi.mode(WIFI_STA);
   Serial.print("Conecting ..");
@@ -340,28 +389,10 @@ void loop(void){
     events.send("ping",NULL,millis());
     events.send(getSensorReadings().c_str(),"new_readings" ,millis());
     lastTime = millis();
-  
+
+  displayReadingsInLCD();
+
   }else if((millis() - lastTime) > 1000){
     ActualizarWifi();
-  }
-
-  char key = keypad.getKey();
-  if (key) {
-    if(key == '1'){
-      showtemp = !showtemp;
-    }else if (key == '2'){
-      showhum = !showhum;
-    }else if (key == '3'){
-      showgas = !showgas;
-    }else if (key == 'A'){
-      togglescreen = !togglescreen;
-      if(togglescreen){
-        lcd.noDisplay();
-        lcd.noBacklight();
-      }else{
-        lcd.display();
-        lcd.backlight();
-      }
-    }else{}
   }
 }
