@@ -41,7 +41,7 @@ int lcdColumns = 20;
 int lcdRows = 4;
 LiquidCrystal_I2C lcd(0x27, lcdColumns, lcdRows);
 
-// //Keypad definitions
+//Keypad definitions
 #define ROW_NUM     4 // four rows
 #define COLUMN_NUM  4 // four columns
 char keys[ROW_NUM][COLUMN_NUM] = {
@@ -54,10 +54,21 @@ byte pin_rows[ROW_NUM]      = {13, 12, 14, 27}; // GPIO19, GPIO18, GPIO5, GPIO17
 byte pin_column[COLUMN_NUM] = {26, 25, 33, 32};   // GPIO16, GPIO4, GPIO0, GPIO2 connect to the column pins
 Keypad keypad = Keypad( makeKeymap(keys), pin_rows, pin_column, ROW_NUM, COLUMN_NUM );
 
+// Switches triggered by keys
 bool showtemp = true;
 bool showhum = true;
 bool showgas = true;
 bool togglescreen = true;
+
+const char* temp1;
+const char* temp2;
+const char* temp3;
+const char* temp4;
+const char* hum1;
+const char* hum2;
+const char* hum3;
+const char* gas1;
+const char* gas2;
 
 //Server prams
 AsyncWebServer server(80);
@@ -104,7 +115,6 @@ String readTemp(short sensor){
   }else{
     return String(sample);  
   }
-  
 }
 
 String readHum(short sensor){
@@ -162,59 +172,59 @@ String getSensorReadings(){
   return jsonString;
 }
 
+void keypadSwitch(){
+  char key = keypad.getKey();
+  if (key) {
+    if(key == '1'){
+      showtemp = !showtemp;
+      if(showtemp){
+          temp1 =  (const char*)readings["tempsensor1"];
+          temp2 =  (const char*)readings["tempsensor2"];
+          temp3 =  (const char*)readings["tempsensor3"];
+          temp4 =  (const char*)readings["tempsensor4"];
+      }else{temp1 = temp2 = temp3 = temp4 = "--.--";}
+
+    }else if (key == '2'){
+      showhum = !showhum;
+      if(showhum){
+        hum1 =  (const char*)readings["humsensor1"];
+        hum2 =  (const char*)readings["humsensor2"];
+        hum3 =  (const char*)readings["humsensor3"];
+      }else{hum1 = hum2 = hum3 = "--.--";}
+
+    }else if (key == '3'){
+      showgas = !showgas;
+      if(showgas){
+        gas1 =  (const char*)readings["gassensor1"];
+        gas2 =  (const char*)readings["gassensor2"];
+      }else{gas1 = gas2 = "--.--";}
+      
+    }else if (key == 'A'){
+      togglescreen = !togglescreen;
+      if(togglescreen){
+        lcd.noDisplay();
+        lcd.noBacklight();
+      }else{
+        lcd.display();
+        lcd.backlight();
+      }
+    }
+  }
+}
+
 void displayReadingsInLCD(void){
   bool scrollwait = true;
   unsigned long retain = 0;
-
-  //String to display per row in LCD | (const char*) this points to the string 
-  const char* temp1 =  (const char*)readings["tempsensor1"];
-  const char* temp2 =  (const char*)readings["tempsensor2"];
-  const char* temp3 =  (const char*)readings["tempsensor3"];
-  const char* temp4 =  (const char*)readings["tempsensor4"];
-  const char* hum1 =  (const char*)readings["humsensor1"];
-  const char* hum2 =  (const char*)readings["humsensor2"];
-  const char* hum3 =  (const char*)readings["humsensor3"];
-  const char* gas1 =  (const char*)readings["gassensor1"];
-  const char* gas2 =  (const char*)readings["gassensor2"];
-  
-  if (showtemp == false){
-    temp1 = temp2 = temp3 = temp4 = "--.--";
-  }
-  if (showhum == false){
-    hum1 = hum2 = hum3 = "--.--";
-  }
-  if (showgas == false){
-    gas1 = gas2 = "--.--";
-  }
-
-  //Print Strings per row
+ 
+  //Cycles to display readings, they don't fit the screen so transitions are used
   for (int i = 0; i <= 4; i++){
-  
     lcd.setCursor(0, 0); lcd.print("t1: "); lcd.setCursor(4, 0); lcd.print(temp1); lcd.setCursor(10, 0); lcd.print("t4: "); lcd.setCursor(14, 0); lcd.print(temp4);
     lcd.setCursor(0, 1); lcd.print("t2: "); lcd.setCursor(4, 1); lcd.print(temp2); lcd.setCursor(10, 1); lcd.print("t5: "); lcd.setCursor(14, 1); lcd.print("--.--");
     lcd.setCursor(0, 2); lcd.print("t3: "); lcd.setCursor(4, 2); lcd.print(temp3); lcd.setCursor(10, 2); lcd.print("t6: "); lcd.setCursor(14, 2); lcd.print("--.--");
     lcd.setCursor(0, 3); lcd.print("g1: "); lcd.setCursor(4, 3); lcd.print(gas1); lcd.setCursor(10, 3); lcd.print("g2: "); lcd.setCursor(14, 3); lcd.print(gas2); 
     retain = millis();
     do{
-      char key = keypad.getKey();
-      if (key) {
-        if(key == '1'){
-          showtemp = !showtemp;
-        }else if (key == '2'){
-          showhum = !showhum;
-        }else if (key == '3'){
-          showgas = !showgas;
-        }else if (key == 'A'){
-          togglescreen = !togglescreen;
-          if(togglescreen){
-            lcd.noDisplay();
-            lcd.noBacklight();
-          }else{
-            lcd.display();
-            lcd.backlight();
-          }
-        }
-      }
+      keypadSwitch();
     }while((millis() - retain) < 2000);
     
     lcd.clear();
@@ -224,28 +234,9 @@ void displayReadingsInLCD(void){
     lcd.setCursor(0, 3); lcd.print("g2: "); lcd.setCursor(4, 3); lcd.print(gas2);  lcd.setCursor(10, 3);
     retain = millis();
     do{
-      char key = keypad.getKey();
-      if (key) {
-        if(key == '1'){
-          showtemp = !showtemp;
-        }else if (key == '2'){
-          showhum = !showhum;
-        }else if (key == '3'){
-          showgas = !showgas;
-        }else if (key == 'A'){
-          togglescreen = !togglescreen;
-          if(togglescreen){
-            lcd.noDisplay();
-            lcd.noBacklight();
-          }else{
-            lcd.display();
-            lcd.backlight();
-          }
-        }
-      }
+      keypadSwitch();
     }while((millis() - retain) < 2000);
   }
-
 }
 
 // Initialize SPIFFS
@@ -283,11 +274,10 @@ void initWiFi() {
     }
   }
   Serial.println("mDNS configured");
-
   MDNS.addService("http", "tcp", 80);
 }
 
-void ActualizarWifi() {
+void UpdateWifi() {
   if (wifiMulti.run(TiempoEsperaWifi) != WL_CONNECTED) {
     Serial.println("Not connected to Wifi!");
   }
@@ -390,9 +380,10 @@ void loop(void){
     events.send(getSensorReadings().c_str(),"new_readings" ,millis());
     lastTime = millis();
 
+  keypadSwitch();
   displayReadingsInLCD();
 
   }else if((millis() - lastTime) > 1000){
-    ActualizarWifi();
+    UpdateWifi();
   }
 }
