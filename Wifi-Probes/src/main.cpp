@@ -198,18 +198,6 @@ void displayReadingsInLCD(void){
   bool scrollwait = true;
   unsigned long retain = 0;
 
-  temp1 =  (const char*)readings["tempsensor1"];
-  temp2 =  (const char*)readings["tempsensor2"];
-  temp3 =  (const char*)readings["tempsensor3"];
-  temp4 =  (const char*)readings["tempsensor4"];
-  hum1 =  (const char*)readings["humsensor1"];
-  hum2 =  (const char*)readings["humsensor2"];
-  hum3 =  (const char*)readings["humsensor3"];
-  gas1 =  (const char*)readings["gassensor1"];
-  gas2 =  (const char*)readings["gassensor2"];
-
-  keypadSwitch();
-
   //Cycles to display readings, they don't fit the screen so transitions are used
   for (int i = 0; i <= 4; i++){
     if(showtemp){
@@ -276,10 +264,10 @@ void initSPIFFS() {
 // Initialize WiFi
 void initWiFi() {
   // Replace with your network credentials
-  wifiMulti.addAP("wualn2","Control+Edificio+7");
-  wifiMulti.addAP("Galaxy A33 5GB9A6","tbnb8296");
-  wifiMulti.addAP("WLAN_MOSAN","$Mosan1999");
-  wifiMulti.addAP("IZZI-8830","ttD7uDeX");
+  wifiMulti.addAP("ssid1","password1");
+  wifiMulti.addAP("ssid2","password2");
+  wifiMulti.addAP("ssid3","password3");
+  wifiMulti.addAP("ssid4","password4");
 
   WiFi.mode(WIFI_STA);
   Serial.print("Conecting ..");
