@@ -177,28 +177,10 @@ void keypadSwitch(){
   if (key) {
     if(key == '1'){
       showtemp = !showtemp;
-      if(showtemp){
-          temp1 =  (const char*)readings["tempsensor1"];
-          temp2 =  (const char*)readings["tempsensor2"];
-          temp3 =  (const char*)readings["tempsensor3"];
-          temp4 =  (const char*)readings["tempsensor4"];
-      }else{temp1 = temp2 = temp3 = temp4 = "--.--";}
-
     }else if (key == '2'){
       showhum = !showhum;
-      if(showhum){
-        hum1 =  (const char*)readings["humsensor1"];
-        hum2 =  (const char*)readings["humsensor2"];
-        hum3 =  (const char*)readings["humsensor3"];
-      }else{hum1 = hum2 = hum3 = "--.--";}
-
     }else if (key == '3'){
       showgas = !showgas;
-      if(showgas){
-        gas1 =  (const char*)readings["gassensor1"];
-        gas2 =  (const char*)readings["gassensor2"];
-      }else{gas1 = gas2 = "--.--";}
-      
     }else if (key == 'A'){
       togglescreen = !togglescreen;
       if(togglescreen){
@@ -215,9 +197,37 @@ void keypadSwitch(){
 void displayReadingsInLCD(void){
   bool scrollwait = true;
   unsigned long retain = 0;
- 
+
+  temp1 =  (const char*)readings["tempsensor1"];
+  temp2 =  (const char*)readings["tempsensor2"];
+  temp3 =  (const char*)readings["tempsensor3"];
+  temp4 =  (const char*)readings["tempsensor4"];
+  hum1 =  (const char*)readings["humsensor1"];
+  hum2 =  (const char*)readings["humsensor2"];
+  hum3 =  (const char*)readings["humsensor3"];
+  gas1 =  (const char*)readings["gassensor1"];
+  gas2 =  (const char*)readings["gassensor2"];
+
+  keypadSwitch();
+
   //Cycles to display readings, they don't fit the screen so transitions are used
   for (int i = 0; i <= 4; i++){
+    if(showtemp){
+      temp1 =  (const char*)readings["tempsensor1"];
+      temp2 =  (const char*)readings["tempsensor2"];
+      temp3 =  (const char*)readings["tempsensor3"];
+      temp4 =  (const char*)readings["tempsensor4"];
+    }else{temp1 = temp2 = temp3 = temp4 = "--.--";}
+    if(showhum){
+      hum1 =  (const char*)readings["humsensor1"];
+      hum2 =  (const char*)readings["humsensor2"];
+      hum3 =  (const char*)readings["humsensor3"];  
+    }else{hum1 = hum2 = hum3 = "--.--";}
+    if(showgas){
+      gas1 =  (const char*)readings["gassensor1"];
+      gas2 =  (const char*)readings["gassensor2"];  
+    }else{gas1 = gas2 = "--.--";}
+    keypadSwitch();
     lcd.setCursor(0, 0); lcd.print("t1: "); lcd.setCursor(4, 0); lcd.print(temp1); lcd.setCursor(10, 0); lcd.print("t4: "); lcd.setCursor(14, 0); lcd.print(temp4);
     lcd.setCursor(0, 1); lcd.print("t2: "); lcd.setCursor(4, 1); lcd.print(temp2); lcd.setCursor(10, 1); lcd.print("t5: "); lcd.setCursor(14, 1); lcd.print("--.--");
     lcd.setCursor(0, 2); lcd.print("t3: "); lcd.setCursor(4, 2); lcd.print(temp3); lcd.setCursor(10, 2); lcd.print("t6: "); lcd.setCursor(14, 2); lcd.print("--.--");
@@ -226,8 +236,24 @@ void displayReadingsInLCD(void){
     do{
       keypadSwitch();
     }while((millis() - retain) < 2000);
-    
+   
     lcd.clear();
+    if(showtemp){
+      temp1 =  (const char*)readings["tempsensor1"];
+      temp2 =  (const char*)readings["tempsensor2"];
+      temp3 =  (const char*)readings["tempsensor3"];
+      temp4 =  (const char*)readings["tempsensor4"];
+    }else{temp1 = temp2 = temp3 = temp4 = "--.--";}
+    if(showhum){
+      hum1 =  (const char*)readings["humsensor1"];
+      hum2 =  (const char*)readings["humsensor2"];
+      hum3 =  (const char*)readings["humsensor3"];  
+    }else{hum1 = hum2 = hum3 = "--.--";}
+    if(showgas){
+      gas1 =  (const char*)readings["gassensor1"];
+      gas2 =  (const char*)readings["gassensor2"];  
+    }else{gas1 = gas2 = "--.--";}
+    keypadSwitch();
     lcd.setCursor(0, 0); lcd.print("t4: "); lcd.setCursor(4, 0); lcd.print(temp4); lcd.setCursor(10, 0); lcd.print("h1: "); lcd.setCursor(14, 0); lcd.print(hum1);
     lcd.setCursor(0, 1); lcd.print("t5: "); lcd.setCursor(4, 1); lcd.print("--.--"); lcd.setCursor(10, 1); lcd.print("h2: "); lcd.setCursor(14, 1); lcd.print(hum2);
     lcd.setCursor(0, 2); lcd.print("t6: "); lcd.setCursor(4, 2); lcd.print("--.--"); lcd.setCursor(10, 2); lcd.print("h3: "); lcd.setCursor(14, 2); lcd.print(hum3);
@@ -380,7 +406,6 @@ void loop(void){
     events.send(getSensorReadings().c_str(),"new_readings" ,millis());
     lastTime = millis();
 
-  keypadSwitch();
   displayReadingsInLCD();
 
   }else if((millis() - lastTime) > 1000){
