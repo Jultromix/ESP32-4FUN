@@ -28,7 +28,7 @@ DeviceAddress tempDeviceAddress;      //found device storage vairbale
 int deviceQuantity;
 
 #define DHTTYPE DHT11
-DHT dht1(5, DHTTYPE);
+DHT dht1(16, DHTTYPE);
 DHT dht2(17, DHTTYPE);
 DHT dht3(15, DHTTYPE);
 
