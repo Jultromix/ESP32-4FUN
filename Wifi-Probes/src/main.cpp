@@ -16,6 +16,7 @@
 #include <DallasTemperature.h>
 #include <OneWire.h>
 #include <math.h>
+#include "time.h"
 
 #include "SPIFFS.h"
 
@@ -31,10 +32,19 @@ DHT dht1(5, DHTTYPE);
 DHT dht2(17, DHTTYPE);
 DHT dht3(15, DHTTYPE);
 
-// #define RatioMQ135CleanAir 3.6//RS / R0 = 3.6 ppm  
+  // #define RatioMQ135CleanAir 3.6//RS / R0 = 3.6 ppm  
 MQUnifiedsensor g1MQ135("ESP32", 5, 10, 34, "MQ-135");
 MQUnifiedsensor g2MQ135("ESP32", 5, 10, 39, "MQ-135");
 
+const char* temp1;
+const char* temp2;
+const char* temp3;
+const char* temp4;
+const char* hum1;
+const char* hum2;
+const char* hum3;
+const char* gas1;
+const char* gas2;
 
 //LCD variables
 int lcdColumns = 20;
@@ -60,15 +70,10 @@ bool showhum = true;
 bool showgas = true;
 bool togglescreen = true;
 
-const char* temp1;
-const char* temp2;
-const char* temp3;
-const char* temp4;
-const char* hum1;
-const char* hum2;
-const char* hum3;
-const char* gas1;
-const char* gas2;
+//Time varibles
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = -21600;
+const int   daylightOffset_sec = 0;
 
 //Server prams
 AsyncWebServer server(80);
@@ -297,6 +302,16 @@ void UpdateWifi() {
   }
 }
 
+void printLocalTime(){
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    return;
+  }
+  Serial.println(&timeinfo, "%Y,%B,%d,%H:%M:%S");   //"%A, %Y/%B/%d  %H:%M:%S"
+}
+
+
 void setup(void){
   Serial.begin(115200);
 
@@ -382,18 +397,21 @@ void setup(void){
     client->send("hello!", NULL, millis(), 10000);
   });
   server.addHandler(&events);
-
-  Serial.println("initiated");
   server.begin();
+
+  // Init and get the time
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  printLocalTime();
 }
 
 void loop(void){
+  printLocalTime();
   if ((millis() - lastTime) > timerDelay) {
     // Send Events to the client with the Sensor Readings Every 10 seconds
     events.send("ping",NULL,millis());
+    displayReadingsInLCD();
     events.send(getSensorReadings().c_str(),"new_readings" ,millis());
     lastTime = millis();
-
   displayReadingsInLCD();
 
   }else if((millis() - lastTime) > 1000){
