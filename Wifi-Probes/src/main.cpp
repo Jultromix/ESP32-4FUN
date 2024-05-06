@@ -4,7 +4,7 @@
 #include "ESPAsyncWebServer.h"
 #include "WiFiMulti.h"
 #include <ESPmDNS.h>
-// #include "ArduinoJson.h"
+#include <Firebase_ESP_Client.h>
 #include "Arduino_JSON.h"
 
 #include <LiquidCrystal_I2C.h>
@@ -20,7 +20,7 @@
 
 #include "SPIFFS.h"
 
-// Test physical variables
+// physical test variables
 #define ONE_WIRE_BUS 4                // Data wire is plugged into pin 4 on the esp32
 OneWire oneWire(ONE_WIRE_BUS);        // OneWire instance to communicate with any OneWire devices
 DallasTemperature sensors(&oneWire);  // Pass our oneWire reference to Dallas Temperature.
@@ -70,7 +70,7 @@ bool showhum = true;
 bool showgas = true;
 bool togglescreen = true;
 
-//Time varibles
+//NTP Client Time varibles
 const char* ntpServer = "pool.ntp.org";
 const long  gmtOffset_sec = -21600;
 const int   daylightOffset_sec = 0;
@@ -81,7 +81,40 @@ AsyncWebServer server(80);
 AsyncEventSource events("/events");
 // Json Variable to Hold Sensor Readings
 JSONVar readings;
-                     
+
+// Firebase declarations
+#include "addons/TokenHelper.h" //Token generation process
+#include "addons/RTDBHelper.h"  // RTDB payload printing info and other helper function
+#define API_KEY "REPLACE_WITH_YOUR_FIREBASE_PROJECT_API_KEY"
+#define DATABASE_URL "REPLACE_WITH_YOUR_FIREBASE_DATABASE_URL"
+#define USER_EMAIL "REPLACE_WITH_THE_USER_EMAIL"
+#define USER_PASSWORD "REPLACE_WITH_THE_USER_PASSWORD"
+
+FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config;
+String uid;
+bool signupOK = false;
+
+// These paths are similar to directories in a three arrangement
+String databasePath;
+String parentPath;
+//Path for 4:temp sensors, 3:hum sensors and 2:gas sensors
+String temp1Path = "/temperature1";
+String temp2Path = "/temperature2";
+String temp3Path = "/temperature3";
+String temp4Path = "/temperature4";
+String hum1Path = "/humidity1";
+String hum2Path = "/humidity2";
+String hum3Path = "/humidity3";
+String gas1Path = "/gas1";
+String gas2Path = "/gas2";
+String timePath = "/timestamp";
+
+int timestamp;
+FirebaseJson jsonReadings;
+
+
 // Timer variables
 unsigned long lastTime = 0;         
 unsigned long timerDelay = 10000;
@@ -173,6 +206,7 @@ String getSensorReadings(){
   readings["tempsensor4"] = readTemp(3);  //key 6
   readings["gassensor1"] = readGas(0);  //key 7
   readings["gassensor2"] = readGas(1);  //key 8
+  
   String jsonString = JSON.stringify(readings);
   return jsonString;
 }
@@ -302,15 +336,17 @@ void UpdateWifi() {
   }
 }
 
-void printLocalTime(){
+// Function that gets current epoch time
+unsigned long getTime() {
+  time_t now;
   struct tm timeinfo;
-  if(!getLocalTime(&timeinfo)){
-    Serial.println("Failed to obtain time");
-    return;
+  if (!getLocalTime(&timeinfo)) {
+    //Serial.println("Failed to obtain time");
+    return(0);
   }
-  Serial.println(&timeinfo, "%Y,%B,%d,%H:%M:%S");   //"%A, %Y/%B/%d  %H:%M:%S"
+  time(&now);
+  return now;
 }
-
 
 void setup(void){
   Serial.begin(115200);
@@ -401,18 +437,71 @@ void setup(void){
 
   // Init and get the time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  printLocalTime();
+
+  //Database inits
+    // Assign the api key (required)
+  config.api_key = API_KEY;
+  auth.user.email = USER_EMAIL;
+  auth.user.password = USER_PASSWORD;
+    // Assign the RTDB URL (required)
+  config.database_url = DATABASE_URL;
+
+  Firebase.reconnectWiFi(true);
+  fbdo.setResponseSize(4096);
+  /* Assign the callback function for the long running token generation task */
+  config.token_status_callback = tokenStatusCallback; //see addons/TokenHelper.h
+  config.max_token_generation_retry = 5;
+  Firebase.begin(&config, &auth);
+  
+  // Getting the user UID might take a few seconds
+  Serial.println("Getting User UID");
+  while ((auth.token.uid) == "") {
+    Serial.print('.');
+    delay(1000);
+  }
+
+  uid = auth.token.uid.c_str();
+  Serial.print("User UID: ");
+  Serial.print(uid);
+  // Update database path
+  databasePath = "/UsersData/";
+  databasePath += uid;
+  databasePath += "/readings";
+
 }
 
 void loop(void){
-  printLocalTime();
-  if ((millis() - lastTime) > timerDelay) {
-    // Send Events to the client with the Sensor Readings Every 10 seconds
-    events.send("ping",NULL,millis());
-    displayReadingsInLCD();
-    events.send(getSensorReadings().c_str(),"new_readings" ,millis());
+  if (Firebase.ready() && (millis() - lastTime) > timerDelay) {
     lastTime = millis();
-  displayReadingsInLCD();
+
+    // Print Timestamp
+    timestamp = getTime();
+    Serial.print ("time: ");
+    Serial.println (timestamp);
+
+    //Update parentPath or node variable
+    parentPath = databasePath;
+    parentPath += "/";
+    parentPath += String(timestamp);
+
+    jsonReadings.set(temp1Path.c_str(), readTemp(0));
+    jsonReadings.set(temp2Path.c_str(), readTemp(2));
+    jsonReadings.set(temp3Path.c_str(), readTemp(3));
+    jsonReadings.set(temp4Path.c_str(), readTemp(4));
+    jsonReadings.set(hum1Path.c_str(), readHum(0));
+    jsonReadings.set(hum2Path.c_str(), readHum(2));
+    jsonReadings.set(hum3Path.c_str(), readHum(3));
+    jsonReadings.set(gas1Path.c_str(), readGas(0));
+    jsonReadings.set(gas2Path.c_str(), readGas(1));
+    jsonReadings.set(timePath, String(timestamp));
+    Serial.printf("Set json... %s\n", Firebase.RTDB.setJSON(&fbdo, parentPath.c_str(), &jsonReadings) ? "ok" : fbdo.errorReason().c_str());
+
+
+    // Send Events to the client with the Sensor Readings Every 10 seconds (Web page)
+    events.send("ping",NULL,millis());
+    events.send(getSensorReadings().c_str(),"new_readings" ,millis());
+
+    displayReadingsInLCD();
 
   }else if((millis() - lastTime) > 1000){
     UpdateWifi();
