@@ -1,0 +1,77 @@
+
+table.sensor-tble, th, td{
+    margin:  auto;
+    border: 2px solid rgb(140 140 140);
+    border-collapse: collapse;
+    text-align: center;
+    width: 55%; /* Adjust as needed */
+    
+}
+caption{
+    color: #ddd;
+    font-family: 'Quicksand';
+}
+
+th.temp-header {
+    text-align: center;
+    color: #221F1F;
+    background-color: #906C29;
+    font-weight: bold;
+    font-family: 'Quicksand';
+}
+th.hum-header {
+    color: #221F1F;
+    background-color: #906C29;
+    font-weight: bold;
+    font-family: 'Quicksand';
+}
+th.gas-header {
+    color: #221F1F;
+    background-color: #906C29;
+    font-weight: bold;
+    font-family: 'Quicksand';
+}
+
+h1{
+    text-align: center;
+    color: #E8B813;
+    font-family: 'Quicksand';
+}
+
+th, td {
+    border: 5px solid #F7FAF9; /* Border style */
+    padding: 10px; /* Padding for content */
+    text-align: center; /* Align text to left */
+    color:#221F1F;
+    background-color: #E8B813;
+    font-family: 'Quicksand';
+
+}
+
+div.container{
+    margin: auto;
+    justify-content: center;
+}
+
+button{
+    border: 5px solid #906C29; /* Border style */
+    background-color: #F7FAF9;
+    color: #E8B813;
+    padding: 6px; /* Padding for content */
+    text-align: center; /* Align text to left */
+    margin: 20px;
+    justify-content: center;
+    font-weight: bold;
+    font-family: 'Quicksand';
+}
+
+body {
+    background-color: #1975BC; /* Light gray background color */
+}
+
+.container{
+    margin: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

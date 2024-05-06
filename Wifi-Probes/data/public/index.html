@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Environmental Monitor</title>
     <!-- GOOGLE FONTS -->
-    <!-- <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet"> -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
     <!-- FONTS AWESOME -->
 
     <link rel="stylesheet" type="text/css" href="main.css">
@@ -20,46 +20,8 @@
     
     <div class="all-content">
             <h1 class="headlogo">Environmental <span>Monitor</span></h1>
-    
-            <table class="settings-tble">
-                <caption>
-                    Settings Table
-                </caption>
-                <tr>
-                    <!-- Board header in table -->
-                    <th>Board:</th>
-                    <th colspan="2">ESP32 Dev Module</th>
-                </tr>
-                <tr>
-                    <!-- Pin usage header table-->
-                    <th>Pin number</th>
-                    <th>Pin Description</th>
-                    <th>Pin Type</th>
-                </tr>
-                <tr>
-                    <!-- Cell content in table -->
-                    <td>GPIO 4</td>
-                    <td>Temperature reading bus</td>
-                    <td>input</td>
-                </tr>
-                <tr>
-                    <td>GPIO 5</td>
-                    <td>Humidity readings</td>
-                    <td>input</td>
-                </tr>
-                <tr>
-                    <td>GPIO 34</td>
-                    <td>CO2 readings sensor<sub>1/2</sub></td>
-                    <td>input</td>
-                </tr>
-                <tr>
-                    <td>GPIO 39</td>
-                    <td>CO2 readings sensor<sub>2/2</sub></td>
-                    <td>input</td>
-                </tr>
-            </table>
             
-            <table class="sensor-tble">
+            <table class="sensor-tble" class="rounded-corner">
                 <caption>
                     Sensors' Readings
                 </caption>
@@ -112,13 +74,17 @@
                 </tr>
             </table>
 
-            <table class="overall-tble">
-                <caption>
-                    General Info
-                </caption>
-            </table>
-
+        <div class="container">
+            <button id="downloadCsv">Download CSV</button>
+            <button id="downloadJson">Download JSON</button>
+        </div>
+            
     </div>
-    <script src="main.js"></script>
+    <Script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></Script>
+    <Script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-database-compat.js"></Script>
+    <Script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></Script>
+    <Script type="module" src="index.js"></Script>
+
 </body>
+
 </html> 
