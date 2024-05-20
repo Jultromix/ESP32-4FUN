@@ -1,21 +1,21 @@
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyANRE24xIvVL1zOJZ_aLpTgbstZtTvJipg",
-  authDomain: "esp324fun-bb666.firebaseapp.com",
-  databaseURL: "https://esp324fun-bb666-default-rtdb.firebaseio.com",
-  projectId: "esp324fun-bb666",
-  storageBucket: "esp324fun-bb666.appspot.com",
-  messagingSenderId: "361944136379",
-  appId: "1:361944136379:web:ed15287b583444ba8c879e"
+  apiKey: "your_apiKey",
+  authDomain: "your_authDomain",
+  databaseURL: "your_databaseURL",
+  projectId: "your_projectId",
+  storageBucket: "your_storageBucket",
+  messagingSenderId: "your_messagingSenderId",
+  appId: "your_appId"
   };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
 // Sign in with predetermined email and password
-const email = "esp324fun@gmail.com";
-const password = "$_Esp324fun_psswd";
+const email = "your_email";
+const password = "your_password";
 
 
 
@@ -70,7 +70,7 @@ const retrieveDataAndDownloadCSV = () => {
       const user = userCredential.user;
       
       // Access Real-Time Database
-      const dbRef = firebase.database().ref('/UsersData/ZydQXP62DyXKo3kSYFivzxSb89S2/readings');
+      const dbRef = firebase.database().ref('/your/path');
       dbRef.once('value', (snapshot) => {
         const data = snapshot.val();
         
@@ -117,7 +117,7 @@ firebase.auth().signInWithEmailAndPassword(email, password)
       const user = userCredential.user;
       
       // Access Real-Time Database
-      const dbRef = firebase.database().ref('/UsersData/ZydQXP62DyXKo3kSYFivzxSb89S2/readings');
+      const dbRef = firebase.database().ref('/your/path');
       dbRef.on('value', (snapshot) => {
         const data = snapshot.val();
         const subkeyValues = {};
@@ -126,7 +126,7 @@ firebase.auth().signInWithEmailAndPassword(email, password)
             for (const subkey in data[timestampKey]) {
               if (data[timestampKey].hasOwnProperty(subkey)) {
                 const value = data[timestampKey][subkey];
-                const path = `/UsersData/ZydQXP62DyXKo3kSYFivzxSb89S2/readings/${timestampKey}/${subkey}`;
+                const path = `/your/path/${timestampKey}/${subkey}`;
                 subkeyValues[subkey] = { value, path };
               }
             }

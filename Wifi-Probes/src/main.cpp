@@ -18,8 +18,6 @@
 #include <math.h>
 #include "time.h"
 
-#include "SPIFFS.h"
-
 // physical test variables
 #define ONE_WIRE_BUS 4                // Data wire is plugged into pin 4 on the esp32
 OneWire oneWire(ONE_WIRE_BUS);        // OneWire instance to communicate with any OneWire devices
@@ -75,10 +73,6 @@ const char* ntpServer = "pool.ntp.org";
 const long  gmtOffset_sec = -21600;
 const int   daylightOffset_sec = 0;
 
-//Server prams
-AsyncWebServer server(80);
-// Create an Event Source on /events
-AsyncEventSource events("/events");
 // Json Variable to Hold Sensor Readings
 JSONVar readings;
 
@@ -292,14 +286,6 @@ void displayReadingsInLCD(void){
   }
 }
 
-// Initialize SPIFFS
-void initSPIFFS() {
-  if (!SPIFFS.begin()) {
-    Serial.println("An error has occurred while mounting SPIFFS");
-  }
-  Serial.println("SPIFFS mounted successfully");
-}
-
 // Initialize WiFi
 void initWiFi() {
   // Replace with your network credentials
@@ -408,32 +394,6 @@ void setup(void){
   }
 
   initWiFi();
-  initSPIFFS();
-
-  // Web Server Root URL
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/index.html", "text/html");
-  });
-
-  server.serveStatic("/", SPIFFS, "/");
-
-    // Request for the latest sensor readings
-  server.on("/readings", HTTP_GET, [](AsyncWebServerRequest *request){
-    String json = getSensorReadings();
-    request->send(200, "application/json", json);
-    json = String();
-  });
-
-  events.onConnect([](AsyncEventSourceClient *client){
-    if(client->lastId()){
-      Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
-    }
-    // send event with message "hello!", id current millis
-    // and set reconnect delay to 1 second
-    client->send("hello!", NULL, millis(), 10000);
-  });
-  server.addHandler(&events);
-  server.begin();
 
   // Init and get the time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
@@ -496,11 +456,7 @@ void loop(void){
     jsonReadings.set(timePath, String(timestamp));
     Serial.printf("Set json... %s\n", Firebase.RTDB.setJSON(&fbdo, parentPath.c_str(), &jsonReadings) ? "ok" : fbdo.errorReason().c_str());
 
-
-    // Send Events to the client with the Sensor Readings Every 10 seconds (Web page)
-    events.send("ping",NULL,millis());
-    events.send(getSensorReadings().c_str(),"new_readings" ,millis());
-
+    getSensorReadings();
     displayReadingsInLCD();
 
   }else if((millis() - lastTime) > 1000){
